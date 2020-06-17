@@ -15,6 +15,9 @@ module.exports = route => {
     BlogImageController.blogImageAdd(req, res);
 });
 
+    // get blog image details List
+    apiRoutes.get('/blogImage/lists/:title?/:filename?/:startDate?/:endDate?', BlogImageController.blogImageList);
+
     // get blog image details by id
     apiRoutes.get('/blogImage/:id', BlogImageController.blogImageDetails);
 

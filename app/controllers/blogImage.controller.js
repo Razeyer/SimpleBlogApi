@@ -47,6 +47,22 @@ exports.blogImageDetails = (req, res) => {
   });
 };
 
+// get blog image details list
+exports.blogImageList = (req, res) => {
+  let query = {
+    title: {'$regex': req.query.title || ''},
+    filename: {'$regex': req.query.filename || ''},
+    created: {
+      $gte: moment(req.query.startDate),
+      $lt: moment(req.query.endDate),
+    },
+  };
+  BlogImageModel.find(query, function (err, blogImage) {
+    console.log(blogImage)
+    return res.status(200).json(blogImage);
+  })
+};
+
 // update blog image details
 exports.blogImageUpdate = (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) return res.status(422).json({
