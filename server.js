@@ -6,13 +6,20 @@ const router = require('./app/router');
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+  }))
+  
+app.use(bodyParser.json())
 
 app.set('port', config.port);
 app.listen(app.get('port'), err => {
   if(err) console.error(err);
   console.log(`Server listening on port ${app.get('port')}...`);
-  const db = mongoose.connect(config.db);
+  const db = mongoose.connect(config.db, {
+      useNewUrlParser: true,
+    useUnifiedTopology: true
+});
   mongoose.connection.on('connected', () => {
     console.log(`Mongoose connected to ${config.db}`);
   });
