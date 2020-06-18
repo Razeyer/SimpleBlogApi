@@ -5,12 +5,15 @@ const config = require('./app/config');
 const router = require('./app/router');
 
 const app = express();
+require('dotenv').config();
 
 app.use(bodyParser.urlencoded({
     extended: true
   }))
   
 app.use(bodyParser.json())
+
+app.use(express.static('./app/images'));
 
 app.set('port', config.port);
 app.listen(app.get('port'), err => {

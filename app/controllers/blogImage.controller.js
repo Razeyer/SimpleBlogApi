@@ -39,8 +39,12 @@ exports.blogImageDetails = (req, res) => {
         if (err) return res.status(422).json({
           msg: 'Blog Image does not exist.'
         });
+        let ret = JSON.parse(JSON.stringify(blogImage));
         return res.status(200).json({
-          blogImageDetails: blogImage
+          blogImageDetails: {
+            ...ret,
+            imageUrl: `${process.env.BASE_URL}/${ret.filename}`
+          }
         });
       })
     } else return res.status(404).json();
@@ -58,8 +62,15 @@ exports.blogImageList = (req, res) => {
     },
   };
   BlogImageModel.find(query, function (err, blogImage) {
-    console.log(blogImage)
-    return res.status(200).json(blogImage);
+    let ret = JSON.parse(JSON.stringify(blogImage));
+    let data = []
+    for (var i in ret) {
+      data[i] = {
+        ...ret[i],
+        imageUrl: `${process.env.BASE_URL}/${ret[i].filename}`
+      }
+    }
+    return res.status(200).json(data);
   })
 };
 
