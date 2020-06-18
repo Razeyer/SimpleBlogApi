@@ -1,5 +1,5 @@
 var multer  = require('multer');
-const moment = require('moment');
+var helpers  = require('./imageHelper');
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, './app/images');
@@ -20,6 +20,6 @@ var storage = multer.diskStorage({
     }
 });
 
-var upload = multer({storage: storage});
+var upload = multer({storage: storage, fileFilter: helpers.imageFilter});
 
 module.exports = upload;

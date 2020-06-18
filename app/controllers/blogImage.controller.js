@@ -1,5 +1,6 @@
 "use strict"
 const BlogImageModel = require('../models/blogImage.model');
+const { isDateValid }  = require('../utils/dateHelper');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const fs = require('fs');
@@ -9,12 +10,13 @@ const unlinkAsync = promisify(fs.unlink)
 
 // create a new blog image
 exports.blogImageAdd = (req, res) => {
-  console.log(req.file);
-  const body = {
-      title: req.body.title,
-      filename: `${req.file.filename}`
-  };
-  const NewBlogImage = new BlogImageModel(body);
+  if (req.file === undefined) return res.status(400).json({
+    msg: 'The image is required.'
+  });
+  const NewBlogImage = new BlogImageModel({
+    title: req.body.title,
+    filename: `${req.file.filename}`
+});
   NewBlogImage.save((err, blogImage) => {
     if(err) {
       return res.status(422).json({
@@ -53,24 +55,37 @@ exports.blogImageDetails = (req, res) => {
 
 // get blog image details list
 exports.blogImageList = (req, res) => {
+  console.log(req.query)
+  let startDate = req.query.startDate ? req.query.startDate : -8640000000000000
+  if (!isDateValid(new Date(startDate))) return res.status(400).json({
+    msg: 'Invalid start date.',
+  });
+  let endDate = req.query.endDate ? req.query.endDate : 8640000000000000
+  if (!isDateValid(new Date(endDate))) return res.status(400).json({
+    msg: 'Invalid end date.',
+  });
   let query = {
     title: {'$regex': req.query.title || ''},
     filename: {'$regex': req.query.filename || ''},
     created: {
-      $gte: moment(req.query.startDate),
-      $lt: moment(req.query.endDate),
+      $gte: new Date(startDate),
+      $lt: new Date(endDate),
     },
   };
+  console.log(query)
   BlogImageModel.find(query, function (err, blogImage) {
-    let ret = JSON.parse(JSON.stringify(blogImage));
-    let data = []
-    for (var i in ret) {
-      data[i] = {
-        ...ret[i],
-        imageUrl: `${process.env.BASE_URL}/${ret[i].filename}`
+    console.log(blogImage)
+    if (blogImage !== undefined) {
+      let ret = JSON.parse(JSON.stringify(blogImage));
+      let data = []
+      for (var i in ret) {
+        data[i] = {
+          ...ret[i],
+          imageUrl: `${process.env.BASE_URL}/${ret[i].filename}`
+        }
       }
-    }
-    return res.status(200).json(data);
+      return res.status(200).json(data);
+    } else return res.status(404).json({});
   })
 };
 
@@ -81,6 +96,12 @@ exports.blogImageUpdate = (req, res) => {
   });
   BlogImageModel.where({ '_id': req.params.id }).countDocuments(function(err, count) {
     if (count > 0) {
+      if (req.body.title === '') return res.status(400).json({
+        msg: 'Title is required.'
+      });
+      if (req.file === undefined) return res.status(400).json({
+        msg: 'The image is required.'
+      });
       let oldFile = '';
       BlogImageModel.findById(req.params.id, function (err, blogImage) {
         oldFile = blogImage.filename;
@@ -104,7 +125,7 @@ exports.blogImageUpdate = (req, res) => {
             });
           }
       });
-    } else return res.status(404).json();
+    } else return res.status(404).json({});
   });
 };
 
